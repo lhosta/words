@@ -1,21 +1,23 @@
+# PySide6.QtWidgets - модуль библиотеки PySide6
+# PySide6 - адаптер на Python для библиотеки C++ Qt (библиотека для создания графических приложений)
 from PySide6.QtWidgets import (
-    QApplication,
-    QLineEdit,
+    QApplication, # класс, который обрабатывает события, генерируемые в процессе работы приложения
+    QLineEdit, # текстовое поле
     QMainWindow,
     QPushButton,
     QHBoxLayout,
     QVBoxLayout,
     QTableWidget,
-    QTableWidgetItem,
+    QTableWidgetItem, # одна ячейка таблицы
     QWidget,
     QHeaderView,
-    QAbstractItemView
+    QAbstractItemView # используется для изменения поведения выделения в таблице
 )
-from PySide6.QtCore import Qt
-import sqlite3
+from PySide6.QtCore import Qt # используется для выравнивания текста по центру ячейки в таблице через Qt.AlignCenter
+import sqlite3 # модуль для взаимодействия с sqlite базой данных
 
 
-# добавляет новое слово и перевод используя текст из полей на экране в базу данных
+# добавляет новое слово и перевод, используя текст из полей на экране в базу данных
 # после чего вызывает add_word_into_table для добавления строки в таблицу на экране
 def add_word_from_fields():
     word = word_edit.text()
@@ -71,15 +73,22 @@ def sqlite_lower(value_):
     return value_.lower()
 
 
-conn = sqlite3.connect('words.db')
+conn = sqlite3.connect('words.db') # соединение программы с БД
+# по умолчанию, функция lower в sqlite3 не работает с русскими буквами, но имеется возможность переопределить эту функцию.
+# т.о., вместо встроенной, используется собственная функция, которая может приводить русские  буквы к нижнему регистру.
+# пример:
+# lower('ПРИВЕТ') = 'ПРИВЕТ' для стандартной функции sqlite3
+# lower('ПРИВЕТ') = 'привет' для переопределенной функции
 conn.create_function("lower", 1, sqlite_lower)
-cursor = conn.cursor()
+cursor = conn.cursor() # объект для вып-ния sql-запросов
 
+# sqlite_master - служебная таблица с метаинформацией
 cursor.execute("SELECT count(name) FROM sqlite_master WHERE type='table' AND name='words'")
 
 if cursor.fetchone()[0] == 0:
     create_table_query = "CREATE TABLE words (id INTEGER PRIMARY KEY AUTOINCREMENT, word TEXT NOT NULL, translation TEXT NOT NULL)"
     cursor.execute(create_table_query)
+    conn.commit() # для выгрузки изменений в файл
 
 app = QApplication([])
 
@@ -90,7 +99,7 @@ search_edit.setPlaceholderText('Что искать?')
 search_layout.addWidget(search_edit)
 
 search_button = QPushButton('Найти')
-search_button.clicked.connect(search)
+search_button.clicked.connect(search)  # при нажатии на search_button вызывать search
 search_layout.addWidget(search_button)
 
 search_widget = QWidget()
